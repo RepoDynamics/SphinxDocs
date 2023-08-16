@@ -1,0 +1,116 @@
+name: 'RepoDynamics SphinxDocs'
+description: 'Build and deploy Sphinx documentations.'
+author: 'Armin Ariamajd'
+branding:
+  icon: file-text
+  color: blue
+
+
+inputs:
+
+  checkout-ref:
+    description: Reference to checkout, i.e. the `ref` input of `actions/checkout`.
+    default: ""
+    required: false
+
+  deploy:
+      description: |
+        Whether to deploy the documentation; either `true` or `false`.
+      default: false
+      required: false
+
+
+outputs:
+
+  url:
+    description: URL of the deployed website on GitHub Pages.
+    value: ${{ steps.deploy.outputs.url }}
+
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: 'Initialize'
+      shell: bash
+      run: |
+        # Initialize
+        printf "\n\n$(cat ${{github.action_path}}/logo.txt)\n\n\n"
+        echo -e "\033[1;30;48;2;0;162;255m 1. Initialize  "
+
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.checkout-ref }}
+
+    - name: 'Setup conda environment'
+      # https://github.com/mamba-org/setup-micromamba
+      uses: mamba-org/setup-micromamba@v1
+      with:
+        environment-file: docs/website/requirements.yaml
+        cache-environment: true
+        cache-environment-key: sphinx-website-requirements
+        generate-run-shell: true
+        init-shell: bash
+
+    - name: 'Install RepoDynamics'
+      shell: micromamba-shell {0}
+      run: |
+        # Install requirements
+        echo -e "::group::\033[1;38;2;0;162;255mInstall RepoDynamics"
+        pip install -r meta/requirements.txt
+        echo "::endgroup::"
+        
+        if [ -f "pyproject.toml" ]; then
+            echo -e "::group::\033[1;38;2;0;162;255mInstall local package"
+            pip install .
+            echo "::endgroup::"
+        fi
+        echo -e "::group::\033[1;38;2;0;162;255mInstalled packages"
+        pip list
+        echo "::endgroup::"
+
+    - shell: bash -el {0}
+      run: |
+        echo -e "::group::\033[1;38;2;0;162;255mInstall local package"
+        micromamba list
+        echo "::endgroup::"
+
+    - name: 'Build HTML'
+      shell: micromamba-shell {0}
+      run: |
+        cd docs/website
+        echo -e "::group::\033[1;38;2;0;162;255mBuild HTML"
+        make clean dirhtml
+        echo "::endgroup::"        
+        mv _build/dirhtml _build/html
+        echo -e "::group::\033[1;38;2;0;162;255mDisplay ordered builds"
+        find docs/website/_build
+        echo "::endgroup::"        
+
+    - name: 'Upload builds'
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v3
+      with:
+        path: docs/website/_build/*
+        name: 'docs'
+
+    - name: 'Upload GitHub Pages artifact'
+      # https://github.com/actions/upload-pages-artifact
+      if: ${{ !cancelled() }}
+      uses: actions/upload-pages-artifact@v1
+      with:
+        path: 'docs/website/_build/html'
+
+    - name: 'Setup GitHub Pages'
+      if: ${{ !failure() && inputs.deploy == 'true' }}
+      # https://github.com/actions/configure-pages
+      uses: actions/configure-pages@v3
+
+    - name: 'Deploy'
+      id: deploy
+      if: ${{ !failure() && inputs.deploy == 'true' }}
+      # https://github.com/actions/deploy-pages
+      uses: actions/deploy-pages@v2
+#      with:
+#        artifact_name: ${{ inputs.artifact-name }}
