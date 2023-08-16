@@ -53,6 +53,49 @@ runs:
         generate-run-shell: true
         init-shell: bash
 
+
+    - name: 'Display directory tree'
+      shell: bash -el {0}
+      run: ls -laR
+
+
+    #      # To make PDF output, we need the latexmk package and some other plugins, which are not available via conda.
+    #      - name: 'Install extra requirements'
+    #        # Ref:
+    #        #   https://fontawesome.com/docs/web/setup/packages#the-free-package
+    #        #   https://github.com/sphinx-doc/sphinx-docker-images/tree/master
+    #        run: >-
+    #          sudo apt-get update -y
+    #
+    #          sudo apt-get install --no-install-recommends -y
+    #          graphviz
+    #          imagemagick
+    #          latexmk
+    #          lmodern
+    #          texlive-xetex
+    #          texlive-luatex
+    #          texlive-latex-recommended
+    #          texlive-latex-extra
+    #          texlive-fonts-recommended
+    #          fonts-font-awesome
+    #          texlive-fonts-extra
+    #          fonts-freefont-otf
+    #          tex-gyre
+    #          xindy
+    #
+    #          npm install --save @fortawesome/fontawesome-free
+
+
+    #      - name: 'Display non-Python packages'
+    #        run: |
+    #          echo "latexmk Version:"
+    #          latexmk --version
+    #          echo "rsvg Version:"
+    #          rsvg-convert --version
+
+
+
+
     - name: 'Install RepoDynamics'
       shell: micromamba-shell {0}
       run: |
@@ -87,6 +130,43 @@ runs:
         echo -e "::group::\033[1;38;2;0;162;255mDisplay ordered builds"
         find docs/website/_build
         echo "::endgroup::"        
+    
+
+##      - name: 'Build LaTeX'
+##        if: always()
+##        run: |
+##          cd docs/website
+##          make latexpdf
+#
+#      - name: 'Build LaTeX'
+#        if: always()
+#        # Use `make latex` instead of `make latexpdf` to be able to pass extra arguments to `latexmk` in next step.
+#        run: |
+#          cd docs/website
+#          make latex
+#
+#      - name: 'Build PDF'
+#        if: always()
+#        # latexmk docs: https://ctan.mc1.root.project-creative.net/support/latexmk/latexmk.pdf
+#        run : |
+#          cd docs/website/_build/latex
+#          LATEXMKOPTS="-outdir=./pdf -auxdir=./aux -bibfudge- -makeindexfudge-" make
+#
+#      - name: 'Display builds'
+#        if: always()
+#        run: find docs/website/_build
+#
+#      - name: 'Order builds'
+#        if: always()
+#        run : |
+#
+#          mkdir -p docs/website/_build/pdf/log
+#          mv docs/website/_build/latex/aux docs/website/_build/pdf
+#          mv docs/website/_build/latex/pdf/* docs/website/_build/pdf/log
+#          mv docs/website/_build/pdf/log/*.pdf docs/website/_build/pdf
+
+
+
 
     - name: 'Upload builds'
       if: ${{ !cancelled() }}
