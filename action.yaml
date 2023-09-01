@@ -40,8 +40,8 @@ runs:
 
     - uses: actions/checkout@v3
       with:
-        fetch-depth: 0
         ref: ${{ inputs.checkout-ref }}
+        fetch-depth: 0
 
     - name: 'Setup conda environment'
       # https://github.com/mamba-org/setup-micromamba
@@ -54,9 +54,9 @@ runs:
         init-shell: bash
 
 
-    - name: 'Display directory tree'
-      shell: bash -el {0}
-      run: ls -laR
+#    - name: 'Display directory tree'
+#      shell: bash -el {0}
+#      run: ls -laR
 
 
     #      # To make PDF output, we need the latexmk package and some other plugins, which are not available via conda.
@@ -101,7 +101,7 @@ runs:
       run: |
         # Install requirements
         echo -e "::group::\033[1;38;2;0;162;255mInstall RepoDynamics"
-        pip install -r meta/requirements.txt
+        # pip install -r meta/requirements.txt
         echo "::endgroup::"
         
         if [ -f "pyproject.toml" ]; then
