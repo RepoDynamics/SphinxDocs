@@ -8,7 +8,7 @@ branding:
 
 inputs:
 
-  checkout-ref:
+  ref:
     description: Reference to checkout, i.e. the `ref` input of `actions/checkout`.
     default: ""
     required: false
@@ -18,6 +18,18 @@ inputs:
         Whether to deploy the documentation; either `true` or `false`.
       default: 'false'
       required: false
+
+  path-website:
+    description: |
+      Path to the website directory.
+    default: docs/website
+    required: false
+
+  path-package-setup:
+    description: |
+      Path to the package setup file.
+    default: ""
+    required: false
 
 
 outputs:
@@ -40,14 +52,14 @@ runs:
 
     - uses: actions/checkout@v3
       with:
-        ref: ${{ inputs.checkout-ref }}
+        ref: ${{ inputs.ref }}
         fetch-depth: 0
 
     - name: 'Setup conda environment'
       # https://github.com/mamba-org/setup-micromamba
       uses: mamba-org/setup-micromamba@v1
       with:
-        environment-file: docs/website/requirements.yaml
+        environment-file: ${{ inputs.path-website }}/requirements.yaml
         cache-environment: true
         cache-environment-key: sphinx-website-requirements
         generate-run-shell: true
@@ -96,19 +108,15 @@ runs:
 
 
 
-    - name: 'Install RepoDynamics'
+    - name: 'Install Package'
+      if: ${{ inputs.path-package-setup != '' }}
       shell: micromamba-shell {0}
       run: |
-        # Install requirements
-        echo -e "::group::\033[1;38;2;0;162;255mInstall RepoDynamics"
-        # pip install -r meta/requirements.txt
+        # Install package
+        echo -e "::group::\033[1;38;2;0;162;255mInstall Package"
+        # pip install ${{ inputs.path-package-setup }}
         echo "::endgroup::"
         
-        if [ -f "pyproject.toml" ]; then
-            echo -e "::group::\033[1;38;2;0;162;255mInstall local package"
-            pip install .
-            echo "::endgroup::"
-        fi
         echo -e "::group::\033[1;38;2;0;162;255mInstalled packages"
         pip list
         echo "::endgroup::"
@@ -122,13 +130,13 @@ runs:
     - name: 'Build HTML'
       shell: micromamba-shell {0}
       run: |
-        cd docs/website
+        cd ${{ inputs.path-website }}
         echo -e "::group::\033[1;38;2;0;162;255mBuild HTML"
         make clean dirhtml
         echo "::endgroup::"        
         mv _build/dirhtml _build/html
         echo -e "::group::\033[1;38;2;0;162;255mDisplay ordered builds"
-        find docs/website/_build
+        find ${{ inputs.path-website }}/_build
         echo "::endgroup::"        
     
 
@@ -165,15 +173,12 @@ runs:
 #          mv docs/website/_build/latex/pdf/* docs/website/_build/pdf/log
 #          mv docs/website/_build/pdf/log/*.pdf docs/website/_build/pdf
 
-
-
-
     - name: 'Upload builds'
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v3
       with:
-        path: docs/website/_build/*
-        name: 'docs'
+        path: ${{ inputs.path-website }}/_build/*
+        name: Documentation
 
     # Ref: https://github.com/actions/starter-workflows/blob/main/pages/static.yml
     # Ref: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site#publishing-with-a-custom-github-actions-workflow
@@ -183,7 +188,7 @@ runs:
       if: ${{ !cancelled() }}
       uses: actions/upload-pages-artifact@v1
       with:
-        path: 'docs/website/_build/html'
+        path: ${{ inputs.path-website }}/_build/html
 
     - name: 'Setup GitHub Pages'
       if: ${{ !failure() && inputs.deploy == 'true' }}
