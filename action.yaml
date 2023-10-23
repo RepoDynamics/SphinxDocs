@@ -28,7 +28,7 @@ inputs:
   path-package-setup:
     description: |
       Path to the package setup file.
-    default: ""
+    default: "."
     required: false
 
 
@@ -114,7 +114,7 @@ runs:
       run: |
         # Install package
         echo -e "::group::\033[1;38;2;0;162;255mInstall Package"
-        # pip install ${{ inputs.path-package-setup }}
+        pip install ${{ inputs.path-package-setup }}
         echo "::endgroup::"
         
         echo -e "::group::\033[1;38;2;0;162;255mInstalled packages"
