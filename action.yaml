@@ -8,9 +8,14 @@ branding:
 
 inputs:
 
+  repository:
+    description: Full name of the repository, i.e., 'owner-username/repo-name'.
+    required: false
+    default: ${{ github.repository }}
+
   ref:
     description: Reference to checkout, i.e. the `ref` input of `actions/checkout`.
-    default: ""
+    default: ${{ github.ref }}
     required: false
 
   deploy:
@@ -50,8 +55,9 @@ runs:
         printf "\n\n$(cat ${{github.action_path}}/logo.txt)\n\n\n"
         echo -e "\033[1;30;48;2;0;162;255m 1. Initialize  "
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
+        repository: ${{ inputs.repository }}
         ref: ${{ inputs.ref }}
         fetch-depth: 0
 
