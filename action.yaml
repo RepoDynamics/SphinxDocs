@@ -19,10 +19,10 @@ inputs:
     required: false
 
   deploy:
-      description: |
-        Whether to deploy the documentation; either `true` or `false`.
-      default: 'false'
-      required: false
+    description: |
+      Whether to deploy the documentation; either `true` or `false`.
+    default: 'false'
+    required: false
 
   path-website:
     description: |
@@ -34,6 +34,12 @@ inputs:
     description: |
       Path to the package setup file.
     default: "."
+    required: false
+
+  artifact-name:
+    description: |
+      Name of the artifact to upload.
+    default: Documentation
     required: false
 
 
@@ -184,7 +190,7 @@ runs:
       uses: actions/upload-artifact@v3
       with:
         path: ${{ inputs.path-website }}/_build/*
-        name: Documentation
+        name: ${{ inputs.artifact-name }}
 
     # Ref: https://github.com/actions/starter-workflows/blob/main/pages/static.yml
     # Ref: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site#publishing-with-a-custom-github-actions-workflow
